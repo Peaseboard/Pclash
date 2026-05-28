@@ -6,9 +6,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/app_providers.dart';
 import '../utils/constants.dart';
 import '../utils/logger.dart';
+import '../widgets/traffic_chart.dart';
 import 'proxy_screen.dart';
 import 'subscription_screen.dart';
 import 'settings_screen.dart';
+import 'connections_screen.dart';
+import 'profiles_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -24,7 +27,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   final List<Widget> _screens = const [
     HomeTab(),
     ProxyScreen(),
-    SubscriptionScreen(),
+    ProfilesScreen(),
     SettingsScreen(),
   ];
 
@@ -52,9 +55,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             label: '节点',
           ),
           NavigationDestination(
-            icon: Icon(Icons.cloud_download_outlined),
-            selectedIcon: Icon(Icons.cloud_download),
-            label: '订阅',
+            icon: Icon(Icons.folder_outlined),
+            selectedIcon: Icon(Icons.folder),
+            label: '配置',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),
@@ -105,6 +108,23 @@ class HomeTab extends ConsumerWidget {
             ),
 
             const SizedBox(height: 48),
+
+            // Real-time Traffic Chart
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('实时流量', style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 8),
+                    const TrafficChart(history: []), // TODO: Connect to TrafficNotifier
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 32),
 
             // Mode selector
             _ModeSelector(currentMode: mode),

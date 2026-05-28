@@ -1,5 +1,13 @@
 package="com.peaseboard.pclash"
 
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader('UTF-8') { reader ->
+        localProperties.load(reader)
+    }
+}
+
 def flutterRoot = localProperties.getProperty('flutter.sdk')
 if (flutterRoot == null) {
     throw new GradleException("Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
@@ -19,10 +27,16 @@ apply plugin: "com.android.application"
 apply plugin: "kotlin-android"
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
+// Keystore configuration
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace "com.peaseboard.pclash"
     compileSdk 34
-
     ndkVersion flutter.ndkVersion
 
     compileOptions {
@@ -42,20 +56,30 @@ android {
 
     defaultConfig {
         applicationId "com.peaseboard.pclash"
-        minSdkVersion 24
-        targetSdkVersion 34
+        minSdk 24
+        targetSdk 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
-
         ndk {
             abiFilters 'arm64-v8a', 'x86_64'
         }
     }
 
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+            }
+        }
+    }
+
     buildTypes {
         release {
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             shrinkResources false
@@ -66,12 +90,25 @@ android {
         }
     }
 
+    // Split APKs by ABI
     splits {
         abi {
             enable true
             reset()
             include 'arm64-v8a', 'x86_64'
             universalApk true
+        }
+    }
+
+    // Custom APK names
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def abi = output.getFilter(com.android.build.OutputFile.ABI)
+            if (abi != null) {
+                output.outputFileName = "pclash-${variant.buildType.name}-${abi}.apk"
+            } else {
+                output.outputFileName = "pclash-${variant.buildType.name}-universal.apk"
+            }
         }
     }
 }
