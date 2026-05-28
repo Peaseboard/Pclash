@@ -1,6 +1,6 @@
 #!/bin/bash
 # PClash Build Script
-# Usage: ./build.sh [android|macos|all]
+# Usage: ./build.sh [android|macos|windows|linux|all]
 
 set -e
 
@@ -31,7 +31,7 @@ for binary in mihomo-darwin-arm64 mihomo-darwin-amd64 mihomo-android-arm64 mihom
         echo "  ⚠️  Missing: $binary"
         MISSING_BINARIES=$((MISSING_BINARIES + 1))
     else
-        echo "  ✅ Found: $binary"
+        echo "  ✅ Found: $binary ($(du -h "$MIHOMO_DIR/$binary" | cut -f1))"
     fi
 done
 
@@ -41,11 +41,6 @@ if [ $MISSING_BINARIES -gt 0 ]; then
     echo "   Download from: https://github.com/MetaCubeX/mihomo/releases"
     echo "   Place in: $MIHOMO_DIR/"
     echo ""
-    read -p "Continue anyway? (y/N) " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        exit 1
-    fi
 fi
 
 # Build function
@@ -59,22 +54,27 @@ build_platform() {
         android)
             flutter build apk --release
             echo ""
-            echo "✅ APK built: build/app/outputs/flutter-apk/app-release.apk"
-            echo ""
-            echo "📱 To install on connected device:"
-            echo "   flutter run --release"
+            echo "✅ APK: build/app/outputs/flutter-apk/app-release.apk"
+            echo "✅ App Bundle: flutter build appbundle --release (for Google Play)"
             ;;
         macos)
             flutter build macos --release
             echo ""
-            echo "✅ macOS app built: build/macos/Build/Products/Release/pclash.app"
+            echo "✅ macOS: build/macos/Build/Products/Release/pclash.app"
+            ;;
+        windows)
+            flutter build windows --release
             echo ""
-            echo "🖥️  To run:"
-            echo "   open build/macos/Build/Products/Release/pclash.app"
+            echo "✅ Windows: build/windows/x64/runner/Release/pclash.exe"
+            ;;
+        linux)
+            flutter build linux --release
+            echo ""
+            echo "✅ Linux: build/linux/x64/release/bundle/pclash"
             ;;
         *)
             echo "❌ Unknown platform: $platform"
-            echo "   Supported: android, macos"
+            echo "   Supported: android, macos, windows, linux"
             exit 1
             ;;
     esac
@@ -84,8 +84,10 @@ build_platform() {
 PLATFORM=${1:-all}
 
 if [ "$PLATFORM" = "all" ]; then
-    build_platform "android"
     build_platform "macos"
+    build_platform "android"
+    build_platform "windows"
+    build_platform "linux"
 else
     build_platform "$PLATFORM"
 fi

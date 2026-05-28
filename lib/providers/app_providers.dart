@@ -1,9 +1,13 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../core/mihomo_manager.dart';
 import '../core/mihomo_api.dart';
 import '../core/subscription_manager.dart';
+import '../core/platform/vpn_channel.dart';
+import '../core/platform/system_proxy_channel.dart';
 import '../models/proxy.dart';
 import '../models/traffic_stats.dart';
 import '../models/subscription.dart';
@@ -28,6 +32,9 @@ class ConnectionNotifier extends StateNotifier<bool> {
   StreamSubscription<TrafficStats>? _trafficSubscription;
 
   ConnectionNotifier(this._ref) : super(false);
+
+  /// Detect if current platform uses TUN mode
+  bool get _isTunMode => Platform.isAndroid;
 
   /// Start connection - fully串联 all modules
   Future<void> connect() async {
@@ -75,19 +82,52 @@ class ConnectionNotifier extends StateNotifier<bool> {
 
       AppLogger.info('Mihomo started successfully');
 
-      // 4. Set up traffic stream
+      // 4. Platform-specific setup
+      if (_isTunMode) {
+        // Android: Start VPN service
+        await _startVpn(mixedPort, apiPort, secret);
+      } else if (SystemProxyChannel.isSupported) {
+        // Desktop: Set system proxy
+        AppLogger.info('Setting system proxy on ${SystemProxyChannel.platformName}...');
+        await SystemProxyChannel.setSystemProxy(
+          enabled: true,
+          port: mixedPort,
+        );
+      }
+
+      // 5. Set up traffic stream
       _setupTrafficStream();
 
-      // 5. Load proxies
+      // 6. Load proxies
       await _loadProxies();
 
-      // 6. Update state
+      // 7. Update state
       state = true;
       AppLogger.info('Connection established');
 
     } catch (e, st) {
       AppLogger.error('Connection failed', 'CONNECT', e as Exception?);
+      // Clean up on failure
+      await _manager?.stop();
+      _manager = null;
       state = false;
+      rethrow;
+    }
+  }
+
+  /// Start Android VPN service
+  Future<void> _startVpn(int mixedPort, int apiPort, String secret) async {
+    try {
+      final workDir = _manager?.workDir;
+      await VpnChannel.startVpn(
+        mihomoPort: mixedPort,
+        apiPort: apiPort,
+        secret: secret,
+        configPath: workDir != null ? '$workDir/config.yaml' : null,
+      );
+      AppLogger.vpn('VPN service started');
+    } catch (e) {
+      AppLogger.error('Failed to start VPN', 'VPN', e as Exception?);
       rethrow;
     }
   }
@@ -99,20 +139,37 @@ class ConnectionNotifier extends StateNotifier<bool> {
     try {
       AppLogger.info('Disconnecting...');
 
-      // 1. Cancel traffic stream
+      // 1. Platform-specific cleanup
+      if (_isTunMode) {
+        try {
+          await VpnChannel.stopVpn();
+          AppLogger.vpn('VPN service stopped');
+        } catch (e) {
+          AppLogger.error('Failed to stop VPN', 'DISCONNECT', e as Exception?);
+        }
+      } else if (SystemProxyChannel.isSupported) {
+        try {
+          await SystemProxyChannel.disableProxy();
+          AppLogger.proxy('System proxy disabled on ${SystemProxyChannel.platformName}');
+        } catch (e) {
+          AppLogger.error('Failed to disable system proxy', 'DISCONNECT', e as Exception?);
+        }
+      }
+
+      // 2. Cancel traffic stream
       await _trafficSubscription?.cancel();
       _trafficSubscription = null;
 
-      // 2. Stop mihomo process
+      // 3. Stop mihomo process
       await _manager?.stop();
       _manager = null;
 
-      // 3. Reset providers
+      // 4. Reset providers
       _ref.read(proxiesProvider.notifier).state = {};
       _ref.read(proxyGroupsProvider.notifier).state = [];
       _ref.read(trafficProvider.notifier).state = const TrafficStats(up: 0, down: 0);
 
-      // 4. Update state
+      // 5. Update state
       state = false;
       AppLogger.info('Disconnected');
 
@@ -179,10 +236,74 @@ class ConnectionNotifier extends StateNotifier<bool> {
     }
   }
 
+  /// Test delay for a proxy group
+  Future<void> testGroupDelay(String groupName) async {
+    if (_manager?.api == null) return;
+
+    try {
+      await _manager!.api!.testGroupDelay(groupName);
+      // Reload proxies to update delays
+      await _loadProxies();
+      AppLogger.info('Group delay test completed: $groupName');
+    } catch (e) {
+      AppLogger.error('Group delay test failed', 'DELAY', e as Exception?);
+    }
+  }
+
+  /// Select proxy in a group
+  Future<void> selectProxy(String groupName, String proxyName) async {
+    if (_manager?.api == null) return;
+
+    try {
+      await _manager!.api!.selectProxy(groupName, proxyName);
+      _ref.read(selectedProxyProvider.notifier).state = {
+        ..._ref.read(selectedProxyProvider),
+        groupName: proxyName,
+      };
+      AppLogger.info('Selected proxy: $proxyName in $groupName');
+    } catch (e) {
+      AppLogger.error('Failed to select proxy', 'PROXY', e as Exception?);
+    }
+  }
+
+  /// Change proxy mode
+  Future<void> changeMode(String mode) async {
+    if (_manager?.api == null) return;
+
+    try {
+      await _manager!.api!.setMode(mode);
+      _ref.read(proxyModeProvider.notifier).state = mode;
+      AppLogger.info('Mode changed to: $mode');
+    } catch (e) {
+      AppLogger.error('Failed to change mode', 'MODE', e as Exception?);
+    }
+  }
+
+  /// Update subscription and reload
+  Future<void> updateSubscription() async {
+    final subs = await _loadSubscriptions();
+    if (subs.isEmpty) {
+      AppLogger.warning('No subscriptions to update');
+      return;
+    }
+
+    try {
+      final subManager = SubscriptionManager();
+      final content = await subManager.fetchSubscription(subs.first);
+      
+      if (content != null && _manager != null) {
+        await _manager!.restartWithSubscription(content);
+        await _loadProxies();
+        AppLogger.info('Subscription updated and reloaded');
+      }
+    } catch (e) {
+      AppLogger.error('Failed to update subscription', 'SUB', e as Exception?);
+    }
+  }
+
   @override
   void dispose() {
-    _trafficSubscription?.cancel();
-    _manager?.dispose();
+    disconnect();
     super.dispose();
   }
 }
@@ -225,11 +346,6 @@ final proxyModeProvider = StateNotifierProvider<ModeNotifier, String>((ref) {
 
 class ModeNotifier extends StateNotifier<String> {
   ModeNotifier() : super('rule');
-
-  Future<void> changeMode(String mode) async {
-    state = mode;
-    // TODO: Call API to update mode if connected
-  }
 }
 
 // --- Subscriptions Provider ---
@@ -289,22 +405,26 @@ class AppSettings {
   final bool autoStart;
   final String themeMode;
   final bool systemProxy;
+  final bool bypassLan;
 
   const AppSettings({
     this.autoStart = false,
     this.themeMode = 'system',
     this.systemProxy = true,
+    this.bypassLan = true,
   });
 
   AppSettings copyWith({
     bool? autoStart,
     String? themeMode,
     bool? systemProxy,
+    bool? bypassLan,
   }) {
     return AppSettings(
       autoStart: autoStart ?? this.autoStart,
       themeMode: themeMode ?? this.themeMode,
       systemProxy: systemProxy ?? this.systemProxy,
+      bypassLan: bypassLan ?? this.bypassLan,
     );
   }
 }
@@ -319,17 +439,22 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   Future<void> setAutoStart(bool value) async {
-    // TODO: Save to SharedPreferences
+    // Also set platform-specific auto-start
+    if (SystemProxyChannel.isSupported) {
+      await SystemProxyChannel.setAutoStart(value);
+    }
     state = state.copyWith(autoStart: value);
   }
 
   Future<void> setThemeMode(String value) async {
-    // TODO: Save to SharedPreferences
     state = state.copyWith(themeMode: value);
   }
 
   Future<void> setSystemProxy(bool value) async {
-    // TODO: Save to SharedPreferences
     state = state.copyWith(systemProxy: value);
+  }
+
+  Future<void> setBypassLan(bool value) async {
+    state = state.copyWith(bypassLan: value);
   }
 }
