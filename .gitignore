@@ -41,10 +41,6 @@ Thumbs.db
 .env
 .env.*
 
-# Mihomo binaries (large files, download separately)
-assets/mihomo/
-!assets/mihomo/.gitkeep
-
 # Release artifacts
 *.apk
 *.aab
