@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/app_providers.dart';
 import '../utils/constants.dart';
+import '../utils/logger.dart';
 import 'proxy_screen.dart';
 import 'subscription_screen.dart';
 import 'settings_screen.dart';
@@ -16,6 +19,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _currentIndex = 0;
+  bool _isConnecting = false;
 
   final List<Widget> _screens = const [
     HomeTab(),
@@ -122,23 +126,51 @@ class HomeTab extends ConsumerWidget {
 
   Future<void> _toggleConnection(BuildContext context, WidgetRef ref) async {
     final connected = ref.read(isConnectedProvider);
+    final connectionNotifier = ref.read(isConnectedProvider.notifier);
 
     if (!connected) {
-      // Start connection
-      ref.read(isConnectedProvider.notifier).state = true;
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('连接成功')),
-        );
+      try {
+        AppLogger.info('User initiated connection');
+        
+        // Show loading state
+        // TODO: Add loading UI
+        
+        await connectionNotifier.connect();
+        
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('✅ 连接成功'),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      } catch (e) {
+        AppLogger.error('Connection failed', 'UI', e as Exception?);
+        
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('❌ 连接失败: $e'),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 5),
+            ),
+          );
+        }
       }
     } else {
-      // Stop connection
-      ref.read(isConnectedProvider.notifier).state = false;
-
+      // Disconnect
+      await connectionNotifier.disconnect();
+      
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('已断开')),
+          SnackBar(
+            content: const Text('已断开连接'),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     }
@@ -237,7 +269,9 @@ class _ModeSelector extends ConsumerWidget {
                   label: Text(m.$2),
                   selected: isSelected,
                   onSelected: (_) {
-                    ref.read(proxyModeProvider.notifier).state = m.$1;
+                    ref.read(proxyModeProvider.notifier).changeMode(m.$1);
+                    
+                    // TODO: Call API to update mode if connected
                   },
                 );
               }).toList(),
@@ -319,34 +353,36 @@ class _QuickInfoCards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    return Row(
       children: [
         Expanded(
           child: Card(
             child: Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.shield_outlined, size: 24),
-                  SizedBox(height: 8),
-                  Text('安全加密'),
+                  Icon(Icons.shield_outlined, size: 24, 
+                    color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(height: 8),
+                  Text('安全加密', style: Theme.of(context).textTheme.bodyMedium),
                 ],
               ),
             ),
           ),
         ),
-        SizedBox(width: 12),
+        const SizedBox(width: 12),
         Expanded(
           child: Card(
             child: Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.speed_outlined, size: 24),
-                  SizedBox(height: 8),
-                  Text('智能路由'),
+                  Icon(Icons.speed_outlined, size: 24,
+                    color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(height: 8),
+                  Text('智能路由', style: Theme.of(context).textTheme.bodyMedium),
                 ],
               ),
             ),
