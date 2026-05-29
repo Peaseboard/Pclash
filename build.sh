@@ -63,9 +63,10 @@ build_platform() {
             echo "✅ macOS: build/macos/Build/Products/Release/pclash.app"
             ;;
         windows)
-            flutter build windows --release
+            local arch=${2:-x64}
+            flutter build windows --release --target-platform=windows-$arch
             echo ""
-            echo "✅ Windows: build/windows/x64/runner/Release/pclash.exe"
+            echo "✅ Windows ($arch): build/windows/$arch/runner/Release/pclash.exe"
             ;;
         linux)
             flutter build linux --release

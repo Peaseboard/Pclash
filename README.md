@@ -25,7 +25,7 @@
 |------|------|----------|----------|------|
 | **macOS** | 🟡 开发中 | SystemConfiguration (HTTP/SOCKS) | ✅ LaunchAgent | arm64 + x86_64 |
 | **Android** | 🟡 开发中 | VpnService + TUN | ✅ BootReceiver | arm64-v8a + x86_64 |
-| **Windows** | 🟡 开发中 | Registry (Internet Settings) | ✅ Registry Run | x86_64 |
+| **Windows** | 🟡 开发中 | Registry (Internet Settings) | ✅ Registry Run | x86 + x86_64 + ARM64 |
 | **Linux** | 🟡 开发中 | gsettings / kwriteconfig5 | ✅ systemd user | x86_64 + ARM |
 
 ## 🏗️ 架构
@@ -66,7 +66,7 @@
 
 ```bash
 # 1. Clone 项目
-git clone https://github.com/pclash-org/Pclash.git
+git clone https://github.com/Peaseboard/Pclash.git
 cd Pclash
 
 # 2. 补全平台构建文件
@@ -78,8 +78,9 @@ flutter pub get
 # 4. 构建
 flutter build macos --release      # macOS
 flutter build apk --release        # Android
-flutter build windows --release    # Windows
-flutter build linux --release      # Linux
+flutter build windows --release          # Windows x64
+flutter build windows --release --target-platform=windows-x86    # Windows x86
+flutter build windows --release --target-platform=windows-arm64  # Windows ARM64
 ```
 
 ### 一键构建
