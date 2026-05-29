@@ -1,4 +1,4 @@
-/// PClash - Pease Proxy Client
+/// PClash - Modern Proxy Client
 /// Powered by Mihomo Core
 library;
 

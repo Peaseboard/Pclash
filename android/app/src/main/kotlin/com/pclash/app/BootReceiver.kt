@@ -1,4 +1,4 @@
-package com.peaseboard.pclash
+package com.pclash.app
 
 import android.content.BroadcastReceiver
 import android.content.Context

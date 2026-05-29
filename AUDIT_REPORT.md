@@ -1,8 +1,8 @@
 # PClash 项目审计与完善报告 (Project Audit & Perfection Report)
 
 **日期**: 2026-05-28  
-**项目**: PClash (Pease Proxy Client)  
-**仓库**: https://github.com/Peaseboard/Pclash  
+**项目**: PClash (Modern Proxy Client)  
+**仓库**: https://github.com/PClash Contributors/Pclash  
 **负责人**: Hermes Agent (Wú Yōu)
 
 ---
@@ -56,7 +56,7 @@
   - ✅ `SecurityUtils` 实现路径清洗 (`sanitizePath`) 与 URL 校验。
   - ✅ 配置文件存储于系统沙箱（Android `data/data`, macOS `ApplicationSupport`）。
 - **合规性**:
-  - ✅ 隐私政策已部署：`https://www.peaairport.org/privacy/`。
+  - ✅ 隐私政策已部署：`https://www.your-domain.com/privacy/`。
   - ✅ Google Play 数据安全评分：零数据收集 (Zero Data Collection)。
 
 ---

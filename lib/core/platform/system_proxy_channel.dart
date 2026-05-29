@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 /// Unified platform channel for system proxy control
 /// Automatically routes to the correct platform implementation
 class SystemProxyChannel {
-  static const _channel = MethodChannel('com.peaseboard.pclash/proxy');
+  static const _channel = MethodChannel('com.pclash.app/proxy');
 
   /// Get current platform name
   static String get platformName {

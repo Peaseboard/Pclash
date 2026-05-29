@@ -5,7 +5,7 @@ import SystemConfiguration
 /// Sets HTTP/SOCKS proxy through SystemConfiguration framework
 class ProxyHelper {
     
-    static let proxyHelperChannel = "com.peaseboard.pclash/proxy"
+    static let proxyHelperChannel = "com.pclash.app/proxy"
     
     /// Set system-wide HTTP and SOCKS proxy
     static func setSystemProxy(enabled: Bool, port: Int) -> Bool {

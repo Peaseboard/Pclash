@@ -1,4 +1,4 @@
-package com.peaseboard.pclash
+package com.pclash.app
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -20,8 +20,8 @@ import java.io.File
 class PClashVpnService : VpnService() {
 
     companion object {
-        const val ACTION_START = "com.peaseboard.pclash.START"
-        const val ACTION_STOP = "com.peaseboard.pclash.STOP"
+        const val ACTION_START = "com.pclash.app.START"
+        const val ACTION_STOP = "com.pclash.app.STOP"
         const val EXTRA_MIHOMO_PORT = "mihomo_port"
         const val EXTRA_API_PORT = "api_port"
         const val EXTRA_SECRET = "secret"

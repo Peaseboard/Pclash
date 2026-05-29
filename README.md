@@ -1,12 +1,11 @@
-# 🐌 PClash - Pease Proxy Client
+# 🐌 PClash - Modern Proxy Client
 
 > A modern, cross-platform proxy client powered by [Mihomo](https://github.com/MetaCubeX/mihomo) (formerly Clash.Meta).
 
-**Pease 家族成员** — 与 Pboard、PeaseAPI 无缝集成。
+**一款现代、轻量、跨平台的代理客户端。**
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL%203.0-blue.svg)](LICENSE)
 [![Release](https://img.shields.io/badge/release-v1.0.0-green.svg)]()
-[![Privacy](https://img.shields.io/badge/Privacy-Policy-brightgreen.svg)](https://www.peaairport.org/privacy/)
 
 ---
 
@@ -67,7 +66,7 @@
 
 ```bash
 # 1. Clone 项目
-git clone https://github.com/Peaseboard/Pclash.git
+git clone https://github.com/pclash-org/Pclash.git
 cd Pclash
 
 # 2. 补全平台构建文件
@@ -194,7 +193,7 @@ pclash/
 ```dart
 // lib/core/platform/xxx_proxy_channel.dart
 class XxxProxyChannel {
-  static const _channel = MethodChannel('com.peaseboard.pclash/proxy');
+  static const _channel = MethodChannel('com.pclash.app/proxy');
 
   static Future<bool> setSystemProxy({
     required bool enabled,
@@ -229,11 +228,11 @@ PClash 通过 Mihomo 的 `external-controller` API 控制内核：
 
 详见 [Mihomo API 文档](https://wiki.metacubex.one/en/api)
 
-## 🤝 与 Pboard 集成
+## 🤝 订阅集成
 
-PClash 原生支持 Pboard（Pease Board）订阅格式：
+PClash 原生支持标准订阅格式：
 
-1. 在 Pboard 面板获取订阅 URL
+1. 获取你的订阅 URL
 2. 在 PClash → 订阅 页面添加 URL
 3. 自动解析节点、流量信息、过期时间
 
@@ -254,14 +253,12 @@ PClash 原生支持 Pboard（Pease Board）订阅格式：
 
 PClash 不收集任何用户数据。
 
-📖 完整隐私政策：https://www.peaairport.org/privacy/
-
 ## 📄 许可证
 
 GPL-3.0 License
 
-Copyright © 2024-2026 连冰 / Peaseboard
+Copyright © 2024-2026 PClash Contributors
 
 ---
 
-**Powered by Mihomo v1.19.25 · Built with Flutter · Pease Ecosystem**
+**Powered by Mihomo · Built with Flutter**

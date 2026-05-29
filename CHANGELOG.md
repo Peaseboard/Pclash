@@ -49,7 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Included
 - Mihomo v1.19.25 内核二进制（macOS + Android）
-- 隐私政策页面（https://www.peaairport.org/privacy/）
+- 隐私政策页面（https://www.your-domain.com/privacy/）
 - 完整构建配置（Android Gradle + CMake）
 - ProGuard 混淆规则
 

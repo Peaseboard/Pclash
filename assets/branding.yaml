@@ -1,4 +1,4 @@
-# PClash 白标配置
+# PClash Configuration
 # 客户可以通过修改此文件自定义品牌、颜色、API 地址等
 # 文件名：branding.yaml
 
@@ -6,27 +6,27 @@ app:
   # 应用名称（显示在任务栏、关于页面等）
   name: "PClash"
   # 应用简短描述
-  tagline: "Pease Proxy Client"
+  tagline: "Modern Proxy Client"
   # 版本号
   version: "1.0.0"
   # 包名/Bundle ID（Android/iOS/macOS 使用）
-  package_name: "com.peaseboard.pclash"
+  package_name: "com.pclash.app"
   # Windows/Linux 可执行文件名
   executable: "pclash"
 
-# Pboard 集成配置
+# Subscription Integration
 pboard:
-  # Pboard API 基础 URL
-  base_url: "https://www.peaairport.org"
+  # Subscription API Base URL
+  base_url: "https://your-domain.com"
   # 订阅 API 路径（相对路径）
   subscribe_path: "/api/v1/client/subscribe"
   # 用户中心 URL（可选，点击跳转到网页版）
-  user_panel_url: "https://www.peaairport.org/user"
-  # 是否启用 Pboard 集成（false 则仅支持手动导入订阅）
+  user_panel_url: "https://your-domain.com/user"
+  # Enable subscription integration（false 则仅支持手动导入订阅）
   enabled: true
   # 是否允许用户自定义订阅 URL
   allow_custom_subscription: true
-  # 是否显示 Pboard 品牌链接
+  # Show brand link
   show_brand_link: true
 
 # 主题配置
@@ -92,22 +92,22 @@ features:
 # 法律声明
 legal:
   # 隐私政策 URL
-  privacy_policy_url: "https://www.peaairport.org/privacy/"
+  privacy_policy_url: "https://your-domain.com/privacy/"
   # 服务条款 URL
-  terms_of_service_url: "https://www.peaairport.org/terms/"
+  terms_of_service_url: "https://your-domain.com/terms/"
   # 帮助中心 URL
-  help_url: "https://www.peaairport.org/help/"
+  help_url: "https://your-domain.com/help/"
   # 联系邮箱
-  support_email: "support@peaseboard.com"
+  support_email: "support@your-domain.com"
   # 版权信息
-  copyright: "© 2024-2026 Peaseboard. All rights reserved."
+  copyright: "© 2024-2026 PClash Contributors. All rights reserved."
 
 # 构建配置
 build:
   # Android
   android:
     # 应用 ID
-    application_id: "com.peaseboard.pclash"
+    application_id: "com.pclash.app"
     # 最低 SDK 版本
     min_sdk: 24
     # 目标 SDK 版本
@@ -125,7 +125,7 @@ build:
   # macOS
   macos:
     # Bundle ID
-    bundle_id: "com.peaseboard.pclash"
+    bundle_id: "com.pclash.app"
     # 最低 macOS 版本
     deployment_target: "10.15"
     # 团队 ID（Apple Developer）
@@ -136,15 +136,15 @@ build:
   # Windows
   windows:
     # 公司名称
-    company_name: "Peaseboard"
+    company_name: "PClash Contributors"
     # 文件描述
     file_description: "PClash Proxy Client"
     # 版权
-    copyright: "Copyright (C) 2024-2026 Peaseboard"
+    copyright: "Copyright (C) 2024-2026 PClash Contributors"
   
   # Linux
   linux:
     # 应用 ID（用于 .desktop 文件）
-    app_id: "com.peaseboard.pclash"
+    app_id: "com.pclash.app"
     # 应用类别
     categories: ["Network", "Utility"]

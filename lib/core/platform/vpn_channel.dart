@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 
 /// Platform channel for VPN control (Android only)
 class VpnChannel {
-  static const _channel = MethodChannel('com.peaseboard.pclash/vpn');
+  static const _channel = MethodChannel('com.pclash.app/vpn');
 
   /// Check if platform supports VPN control
   static bool get isSupported => Platform.isAndroid;

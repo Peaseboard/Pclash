@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 
 /// Platform channel for Windows system proxy control
 class WindowsProxyChannel {
-  static const _channel = MethodChannel('com.peaseboard.pclash/proxy');
+  static const _channel = MethodChannel('com.pclash.app/proxy');
 
   /// Check if platform supports proxy control
   static bool get isSupported => Platform.isWindows;

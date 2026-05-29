@@ -11,10 +11,10 @@
 -keep class kotlin.Metadata { *; }
 
 # Keep our VPN service
--keep class com.peaseboard.pclash.** { *; }
+-keep class com.pclash.app.** { *; }
 
 # Keep model classes for JSON serialization
--keep class com.peaseboard.pclash.models.** { *; }
+-keep class com.pclash.app.models.** { *; }
 
 # Don't warn about referenced classes
 -dontwarn io.flutter.embedding.**

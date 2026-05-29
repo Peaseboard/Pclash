@@ -35,11 +35,11 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "CompanyName", "Peaseboard"
+            VALUE "CompanyName", "PClash Contributors"
             VALUE "FileDescription", "PClash - Modern Multi-Platform Proxy Client"
             VALUE "FileVersion", "1.0.0"
             VALUE "InternalName", "pclash"
-            VALUE "LegalCopyright", "Copyright (C) 2026 Peaseboard. All rights reserved."
+            VALUE "LegalCopyright", "Copyright (C) 2026 PClash Contributors. All rights reserved."
             VALUE "OriginalFilename", "pclash.exe"
             VALUE "ProductName", "PClash"
             VALUE "ProductVersion", "1.0.0"

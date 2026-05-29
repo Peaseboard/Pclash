@@ -1,4 +1,4 @@
-package com.peaseboard.pclash
+package com.pclash.app
 
 import android.content.Intent
 import android.net.VpnService
@@ -16,7 +16,7 @@ import io.flutter.plugin.common.MethodChannel.Result
 class MainActivity: FlutterActivity() {
     
     companion object {
-        private const val CHANNEL = "com.peaseboard.pclash/vpn"
+        private const val CHANNEL = "com.pclash.app/vpn"
         private const val VPN_REQUEST_CODE = 100
     }
 

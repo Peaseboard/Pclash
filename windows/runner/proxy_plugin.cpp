@@ -20,7 +20,7 @@ void ProxyPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrarWindows *registrar) {
   auto channel =
       std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-          registrar->messenger(), "com.peaseboard.pclash/proxy",
+          registrar->messenger(), "com.pclash.app/proxy",
           &flutter::StandardMethodCodec::GetInstance());
 
   auto plugin = std::make_unique<ProxyPlugin>();

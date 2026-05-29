@@ -13,7 +13,7 @@ class BrandingConfig {
   late final String packageName;
   late final String executable;
   
-  // Pboard
+  // Subscription
   late final String pboardBaseUrl;
   late final String pboardSubscribePath;
   late final String pboardUserPanelUrl;
@@ -84,17 +84,17 @@ class BrandingConfig {
       // App
       final app = yaml['app'] as YamlMap?;
       config.name = app?['name'] as String? ?? 'PClash';
-      config.tagline = app?['tagline'] as String? ?? 'Pease Proxy Client';
+      config.tagline = app?['tagline'] as String? ?? 'Modern Proxy Client';
       config.version = app?['version'] as String? ?? '1.0.0';
-      config.packageName = app?['package_name'] as String? ?? 'com.peaseboard.pclash';
+      config.packageName = app?['package_name'] as String? ?? 'com.pclash.app';
       config.executable = app?['executable'] as String? ?? 'pclash';
 
-      // Pboard
+      // Subscription
       final pboard = yaml['pboard'] as YamlMap?;
-      config.pboardBaseUrl = pboard?['base_url'] as String? ?? 'https://www.peaairport.org';
-      config.pboardSubscribePath = pboard?['subscribe_path'] as String? ?? '/api/v1/client/subscribe';
-      config.pboardUserPanelUrl = pboard?['user_panel_url'] as String? ?? 'https://www.peaairport.org/user';
-      config.pboardEnabled = pboard?['enabled'] as bool? ?? true;
+      config.subscribeBaseUrl = pboard?['base_url'] as String? ?? 'https://your-domain.com';
+      config.subscribePath = pboard?['subscribe_path'] as String? ?? '/api/v1/client/subscribe';
+      config.userPanelUrl = pboard?['user_panel_url'] as String? ?? 'https://your-domain.com/user';
+      config.subscribeEnabled = pboard?['enabled'] as bool? ?? true;
       config.allowCustomSubscription = pboard?['allow_custom_subscription'] as bool? ?? true;
       config.showBrandLink = pboard?['show_brand_link'] as bool? ?? true;
 
@@ -127,11 +127,11 @@ class BrandingConfig {
 
       // Legal
       final legal = yaml['legal'] as YamlMap?;
-      config.privacyPolicyUrl = legal?['privacy_policy_url'] as String? ?? 'https://www.peaairport.org/privacy/';
-      config.termsOfServiceUrl = legal?['terms_of_service_url'] as String? ?? 'https://www.peaairport.org/terms/';
-      config.helpUrl = legal?['help_url'] as String? ?? 'https://www.peaairport.org/help/';
-      config.supportEmail = legal?['support_email'] as String? ?? 'support@peaseboard.com';
-      config.copyright = legal?['copyright'] as String? ?? '© 2024-2026 Peaseboard. All rights reserved.';
+      config.privacyPolicyUrl = legal?['privacy_policy_url'] as String? ?? 'https://your-domain.com/privacy/';
+      config.termsOfServiceUrl = legal?['terms_of_service_url'] as String? ?? 'https://your-domain.com/terms/';
+      config.helpUrl = legal?['help_url'] as String? ?? 'https://your-domain.com/help/';
+      config.supportEmail = legal?['support_email'] as String? ?? 'support@your-domain.com';
+      config.copyright = legal?['copyright'] as String? ?? '© 2024-2026 PClash Contributors. All rights reserved.';
 
       // Build
       final build = yaml['build'] as YamlMap?;
@@ -145,7 +145,7 @@ class BrandingConfig {
       config.macosDeploymentTarget = macos?['deployment_target'] as String? ?? '10.15';
 
       final windows = build?['windows'] as YamlMap?;
-      config.windowsCompanyName = windows?['company_name'] as String? ?? 'Peaseboard';
+      config.windowsCompanyName = windows?['company_name'] as String? ?? 'PClash Contributors';
 
       final linux = build?['linux'] as YamlMap?;
       config.linuxAppId = linux?['app_id'] as String? ?? config.packageName;
@@ -162,14 +162,14 @@ class BrandingConfig {
 
   static void _applyDefaults(BrandingConfig config) {
     config.name = 'PClash';
-    config.tagline = 'Pease Proxy Client';
+    config.tagline = 'Modern Proxy Client';
     config.version = '1.0.0';
-    config.packageName = 'com.peaseboard.pclash';
+    config.packageName = 'com.pclash.app';
     config.executable = 'pclash';
-    config.pboardBaseUrl = 'https://www.peaairport.org';
-    config.pboardSubscribePath = '/api/v1/client/subscribe';
-    config.pboardUserPanelUrl = 'https://www.peaairport.org/user';
-    config.pboardEnabled = true;
+    config.subscribeBaseUrl = 'https://your-domain.com';
+    config.subscribePath = '/api/v1/client/subscribe';
+    config.userPanelUrl = 'https://your-domain.com/user';
+    config.subscribeEnabled = true;
     config.allowCustomSubscription = true;
     config.showBrandLink = true;
     config.primaryColor = '#3B82F6';
@@ -190,18 +190,18 @@ class BrandingConfig {
     config.featureGeoUpdate = true;
     config.featureSubscriptionAutoRefresh = true;
     config.subscriptionRefreshInterval = 24;
-    config.privacyPolicyUrl = 'https://www.peaairport.org/privacy/';
-    config.termsOfServiceUrl = 'https://www.peaairport.org/terms/';
-    config.helpUrl = 'https://www.peaairport.org/help/';
-    config.supportEmail = 'support@peaseboard.com';
-    config.copyright = '© 2024-2026 Peaseboard. All rights reserved.';
-    config.androidApplicationId = 'com.peaseboard.pclash';
+    config.privacyPolicyUrl = 'https://your-domain.com/privacy/';
+    config.termsOfServiceUrl = 'https://your-domain.com/terms/';
+    config.helpUrl = 'https://your-domain.com/help/';
+    config.supportEmail = 'support@your-domain.com';
+    config.copyright = '© 2024-2026 PClash Contributors. All rights reserved.';
+    config.androidApplicationId = 'com.pclash.app';
     config.androidMinSdk = 24;
     config.androidTargetSdk = 34;
-    config.macosBundleId = 'com.peaseboard.pclash';
+    config.macosBundleId = 'com.pclash.app';
     config.macosDeploymentTarget = '10.15';
-    config.windowsCompanyName = 'Peaseboard';
-    config.linuxAppId = 'com.peaseboard.pclash';
+    config.windowsCompanyName = 'PClash Contributors';
+    config.linuxAppId = 'com.pclash.app';
   }
 
   /// Get the full subscription URL for a token
