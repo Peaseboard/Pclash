@@ -98,7 +98,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
                         ],
                       ),
                       trailing: Text(
-                        '${(conn['upload'] as int + conn['download'] as int) ~/ 1024} KB',
+                        '${((conn['upload'] as int) + (conn['download'] as int)) ~/ 1024} KB',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       onTap: () {

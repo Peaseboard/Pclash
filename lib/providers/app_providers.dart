@@ -346,6 +346,8 @@ final proxyModeProvider = StateNotifierProvider<ModeNotifier, String>((ref) {
 
 class ModeNotifier extends StateNotifier<String> {
   ModeNotifier() : super('rule');
+
+  void changeMode(String mode) => state = mode;
 }
 
 // --- Subscriptions Provider ---

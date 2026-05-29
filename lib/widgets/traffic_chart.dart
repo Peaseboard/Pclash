@@ -40,7 +40,7 @@ class TrafficChart extends StatelessWidget {
               strokeWidth: 1,
             ),
           ),
-          titlesData: const FlTitlesData(
+          titlesData: FlTitlesData(
             show: true,
             rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
             topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),

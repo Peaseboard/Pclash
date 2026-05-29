@@ -185,7 +185,7 @@ class _ProtocolIcon extends StatelessWidget {
         color = Colors.blue;
         break;
       case 'vmess':
-        iconData = Icons.vpn;
+        iconData = Icons.vpn_key;
         color = Colors.green;
         break;
       case 'vless':
