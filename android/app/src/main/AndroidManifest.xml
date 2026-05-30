@@ -1,73 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.pclash.app">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.pclash">
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
-        android:label="PClash"
-        android:name="${applicationName}"
+        android:name=".MainApplication"
+        android:allowBackup="true"
+        android:fullBackupContent="@xml/full_backup_content"
         android:icon="@mipmap/ic_launcher"
-        android:usesCleartextTraffic="true">
-
+        android:label="@string/application_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        tools:ignore="GoogleAppIndexingWarning">
         <activity
             android:name=".MainActivity"
-            android:exported="true"
-            android:launchMode="singleTop"
-            android:taskAffinity=""
-            android:theme="@style/LaunchTheme"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
-            android:hardwareAccelerated="true"
-            android:windowSoftInputMode="adjustResize">
-            <meta-data
-                android:name="io.flutter.embedding.android.NormalTheme"
-                android:resource="@style/NormalTheme" />
+            android:label="@string/launch_name"
+            android:configChanges="uiMode"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
             </intent-filter>
         </activity>
-
-        <!-- VPN Service -->
-        <service
-            android:name=".PClashVpnService"
-            android:enabled="true"
+        <activity
+            android:name=".ApkBrokenActivity"
+            android:label="@string/application_broken"
             android:exported="false"
-            android:permission="android.permission.BIND_VPN_SERVICE"
-            android:foregroundServiceType="specialUse">
+            android:configChanges="uiMode"/>
+        <activity
+            android:name=".ProfilesActivity"
+            android:label="@string/profiles"
+            android:exported="false"
+            android:configChanges="uiMode"/>
+        <activity
+            android:name=".CreateProfileActivity"
+            android:label="@string/create_profile"
+            android:exported="false"
+            android:configChanges="uiMode" />
+        <activity
+            android:name=".ProfileEditActivity"
+            android:label="@string/profile"
+            android:exported="false"
+            android:configChanges="uiMode" />
+        <activity
+            android:name=".ProxiesActivity"
+            android:label="@string/proxy"
+            android:exported="false"
+            android:configChanges="uiMode" />
+        <activity
+            android:name=".LogsActivity"
+            android:label="@string/logs"
+            android:exported="false"
+            android:configChanges="uiMode" />
+        <activity
+            android:name=".LogViewerActivity"
+            android:label="@string/log_viewer"
+            android:exported="false"
+            android:configChanges="uiMode"
+            android:launchMode="singleTop"/>
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/settings"
+            android:exported="false"
+            android:configChanges="uiMode" />
+        <activity
+            android:name=".SettingsNetworkActivity"
+            android:label="@string/network"
+            android:exported="false"
+            android:configChanges="uiMode" />
+        <activity
+            android:name=".SettingsBehaviorActivity"
+            android:label="@string/behavior"
+            android:exported="false"
+            android:configChanges="uiMode" />
+        <activity
+            android:name=".SettingsInterfaceActivity"
+            android:label="@string/interface_"
+            android:exported="false"
+            android:configChanges="uiMode" />
+        <activity
+            android:name=".PackagesActivity"
+            android:label="@string/access_control_packages"
+            android:exported="false"
+            android:configChanges="uiMode" />
+        <activity
+            android:name=".SupportActivity"
+            android:label="@string/support"
+            android:exported="false"
+            android:configChanges="uiMode" />
+        <service
+            android:name=".LogcatService"
+            android:exported="false"
+            android:label="@string/clash_logcat" />
+        <service
+            android:name=".TileService"
+            android:icon="@drawable/ic_notification"
+            android:label="@string/launch_name"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
-                <action android:name="android.net.VpnService" />
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
             </intent-filter>
-            <meta-data
-                android:name="android.net.VpnService.SUPPORTS_ALWAYS_ON"
-                android:value="true" />
         </service>
-
-        <!-- Boot Receiver -->
-        <receiver
-            android:name=".BootReceiver"
-            android:enabled="true"
-            android:exported="true"
-            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
-            </intent-filter>
-        </receiver>
-
-        <meta-data
-            android:name="flutterEmbedding"
-            android:value="2" />
     </application>
-
-    <queries>
-        <intent>
-            <action android:name="android.intent.action.PROCESS_TEXT" />
-            <data android:mimeType="text/plain" />
-        </intent>
-    </queries>
 </manifest>
