@@ -53,9 +53,10 @@ flutter:
   assets:
     - assets/mihomo/
     - assets/icons/
-  # Supported Windows architectures
-  windows:
-    supported_platforms:
-      - windows_x64
-      - windows_x86
-      - windows_arm64
+
+# Supported Windows architectures (root level)
+windows:
+  supported_platforms:
+    - windows_x64
+    - windows_x86
+    - windows_arm64
