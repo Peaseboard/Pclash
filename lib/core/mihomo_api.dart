@@ -165,7 +165,6 @@ class MihomoApi {
     final wsUrl = 'ws://$_host:$_port/traffic';
     final channel = WebSocketChannel.connect(
       Uri.parse(wsUrl),
-      headers: {'Authorization': 'Bearer $_secret'},
     );
 
     return channel.stream.map((event) {
@@ -182,7 +181,6 @@ class MihomoApi {
     final wsUrl = 'ws://$_host:$_port/logs?level=$level';
     final channel = WebSocketChannel.connect(
       Uri.parse(wsUrl),
-      headers: {'Authorization': 'Bearer $_secret'},
     );
 
     return channel.stream.map((event) {
@@ -195,7 +193,6 @@ class MihomoApi {
     final wsUrl = 'ws://$_host:$_port/connections?interval=$interval';
     final channel = WebSocketChannel.connect(
       Uri.parse(wsUrl),
-      headers: {'Authorization': 'Bearer $_secret'},
     );
 
     return channel.stream.map((event) {

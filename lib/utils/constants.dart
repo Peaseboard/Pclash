@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 /// Application-wide constants and configuration
 class AppConstants {
   AppConstants._();
