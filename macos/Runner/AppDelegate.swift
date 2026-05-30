@@ -10,6 +10,9 @@ class AppDelegate: FlutterAppDelegate {
   override func applicationDidFinishLaunching(_ notification: Notification) {
     super.applicationDidFinishLaunching(notification)
     
+    // Ensure app is fully active
+    NSApp.setActivationPolicy(.regular)
+    
     // Build and assign the main menu
     NSApplication.shared.mainMenu = createMainMenu()
   }

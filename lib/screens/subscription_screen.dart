@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/app_providers.dart';
 import '../models/subscription.dart';
+import '../core/subscription_manager.dart' as subscription_manager;
 
 /// Subscription management screen
 class SubscriptionScreen extends ConsumerStatefulWidget {
@@ -121,19 +122,50 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
     }
 
     final name = _nameController.text.trim().isEmpty ? null : _nameController.text.trim();
+    final notifier = ref.read(subscriptionsProvider.notifier);
     
-    await ref.read(subscriptionsProvider.notifier).add(url, name: name);
-    
-    setState(() {
-      _showAddForm = false;
-      _urlController.clear();
-      _nameController.clear();
-    });
-
+    // Show loading
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('订阅添加成功')),
+        const SnackBar(content: Text('正在获取订阅配置...')),
       );
+    }
+
+    try {
+      await notifier.add(url, name: name);
+      
+      // Immediately fetch content to validate
+      final subs = ref.read(subscriptionsProvider).when(
+        data: (s) => s,
+        loading: () => [],
+        error: (_, __) => [],
+      );
+      final targetSub = subs.firstWhere((s) => s.url == url);
+      
+      final subManager = subscription_manager.SubscriptionManager();
+      final content = await subManager.fetchSubscription(targetSub);
+      
+      if (content == null || content.isEmpty) {
+        throw Exception('订阅内容为空');
+      }
+
+      setState(() {
+        _showAddForm = false;
+        _urlController.clear();
+        _nameController.clear();
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('✅ 订阅添加并验证成功')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('❌ 添加失败: $e'), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 
