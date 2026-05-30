@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/app_providers.dart';
 import '../core/subscription_manager.dart';
+import '../core/robust_subscription_fetcher.dart';
 import '../models/subscription.dart';
 
 class ProfilesScreen extends ConsumerStatefulWidget {
@@ -156,70 +157,38 @@ class _ProfilesScreenState extends ConsumerState<ProfilesScreen> {
   Future<void> _importUrl() async {
     final url = _urlController.text.trim();
     if (url.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请输入订阅 URL')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('请输入订阅 URL')));
       return;
     }
 
-    // Close dialog first
     Navigator.pop(context);
-
-    setState(() {
-      _isLoading = true;
-      _statusMessage = '正在获取订阅配置...';
-    });
+    setState(() { _isLoading = true; _statusMessage = '正在验证并获取订阅配置...'; });
 
     try {
-      // 1. Add subscription to storage
+      // Use robust fetcher with DoH fallback to bypass DNS pollution
+      final content = await RobustSubscriptionFetcher.fetch(url);
+      
+      if (content.isEmpty) {
+        throw Exception('订阅内容为空');
+      }
+
+      final nodeCount = _countNodes(content);
+
+      // Save to local storage after successful validation
       final notifier = ref.read(subscriptionsProvider.notifier);
       await notifier.add(url);
 
-      // 2. Immediately fetch and validate content
-      final subs = ref.read(subscriptionsProvider).when(
-        data: (s) => s,
-        loading: () => [],
-        error: (_, __) => [],
-      );
-      final targetSub = subs.firstWhere((s) => s.url == url);
-
-      final subManager = SubscriptionManager();
-      final content = await subManager.fetchSubscription(targetSub);
-
-      if (content == null || content.isEmpty) {
-        throw Exception('订阅内容为空，请检查 URL 是否正确');
-      }
-
-      // 3. Parse content to get node count
-      final nodeCount = _countNodes(content);
-
-      setState(() {
-        _isLoading = false;
-        _statusMessage = '';
-      });
-
+      setState(() { _isLoading = false; _statusMessage = ''; });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('✅ 导入成功！共 $nodeCount 个节点'),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 3),
-          ),
+          SnackBar(content: Text('✅ 导入成功！共识别到 $nodeCount 个节点'), backgroundColor: Colors.green),
         );
       }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _statusMessage = '';
-      });
-
+      setState(() { _isLoading = false; _statusMessage = ''; });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('❌ 导入失败: $e'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 5),
-          ),
+          SnackBar(content: Text('❌ 导入失败: $e'), backgroundColor: Colors.red, duration: const Duration(seconds: 5)),
         );
       }
     }
