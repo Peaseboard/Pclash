@@ -26,16 +26,16 @@ class AppDelegate: FlutterAppDelegate {
     NSApplication.shared.mainMenu = createMainMenu()
     
     // Setup Flutter channel
-    let controller = mainFlutterWindow?.contentViewController as! FlutterViewController
-    channel = FlutterMethodChannel(name: "com.pclash.app/status_bar", binaryMessenger: controller.engine.binaryMessenger)
-    channel?.setMethodCallHandler { [weak self] call, result in
-      self?.handleMethodCall(call, result: result)
+    if let controller = mainFlutterWindow?.contentViewController as? FlutterViewController {
+      channel = FlutterMethodChannel(name: "com.pclash.app/status_bar", binaryMessenger: controller.engine.binaryMessenger)
+      channel?.setMethodCallHandler { [weak self] call, result in
+        self?.handleMethodCall(call, result: result)
+      }
     }
     
+    // Setup status bar immediately (synchronously)
     setupStatusBar()
   }
-  
-  private func handleMethodCall(_ call: FlutterMethodCall, result: FlutterResult) {
     switch call.method {
     case "updateProxyGroups":
       if let args = call.arguments as? [String: Any],
@@ -74,18 +74,26 @@ class AppDelegate: FlutterAppDelegate {
   }
   
   private func setupStatusBar() {
+    print("PClash: Setting up status bar...")
     statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-    statusItem.button?.title = "PClash"
     
-    // Load pea icon
+    // Fallback to text first
+    statusItem.button?.title = "PClash"
+    statusItem.button?.font = NSFont.boldSystemFont(ofSize: 12)
+    
+    // Try to load icon
     if let iconImage = NSImage(named: "AppIcon") {
       iconImage.size = NSSize(width: 16, height: 16)
-      iconImage.isTemplate = false
+      iconImage.isTemplate = false // Show color
       statusItem.button?.image = iconImage
-      statusItem.button?.title = ""
+      statusItem.button?.title = "" // Clear text if icon loaded
+      print("PClash: Status bar icon loaded successfully.")
+    } else {
+      print("PClash: Warning - Could not load AppIcon for status bar.")
     }
     
     rebuildStatusMenu()
+    print("PClash: Status bar menu assigned.")
   }
   
   private func rebuildStatusMenu() {
@@ -154,7 +162,6 @@ class AppDelegate: FlutterAppDelegate {
     let quitItem = NSMenuItem(title: "退出 PClash", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
     statusMenu.addItem(quitItem)
     
-    // Assign menu to status item
     statusItem.menu = statusMenu
   }
   

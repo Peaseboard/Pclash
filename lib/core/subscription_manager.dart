@@ -1,130 +1,111 @@
 import 'dart:convert';
-
+import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import '../models/subscription.dart';
-import '../core/config_manager.dart';
+import 'robust_subscription_fetcher.dart';
 
-/// Subscription management: fetch, parse, store, auto-update
+/// Subscription management: fetch, save as YAML, switch, delete
 class SubscriptionManager {
-  static const String _prefsKey = 'subscriptions';
-  final Dio _dio;
+  final Dio _dio = Dio();
 
-  SubscriptionManager() : _dio = Dio(BaseOptions(
-    connectTimeout: const Duration(seconds: 15),
-    receiveTimeout: const Duration(seconds: 30),
-    headers: {
-      'User-Agent': 'pclash/1.0.0',
-    },
-  ));
+  // Get directory for storing config files
+  Future<String> get _configsDir async {
+    final docDir = await getApplicationSupportDirectory();
+    final configsDir = Directory(p.join(docDir.path, 'configs'));
+    if (!configsDir.existsSync()) {
+      configsDir.createSync(recursive: true);
+    }
+    return configsDir.path;
+  }
 
-  /// Load all subscriptions from local storage
+  // Get path to the currently active config
+  Future<String> get activeConfigPath async {
+    final docDir = await getApplicationSupportDirectory();
+    return p.join(docDir.path, 'config.yaml');
+  }
+
+  /// Load all subscriptions from local storage (metadata only)
   Future<List<Subscription>> loadSubscriptions() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonList = prefs.getStringList(_prefsKey);
-    if (jsonList == null || jsonList.isEmpty) return [];
+    final configsDirPath = await _configsDir;
+    final dir = Directory(configsDirPath);
+    if (!dir.existsSync()) return [];
 
-    return jsonList
-        .map((json) => Subscription.fromJson(jsonDecode(json) as Map<String, dynamic>))
-        .toList();
-  }
-
-  /// Save all subscriptions to local storage
-  Future<void> saveSubscriptions(List<Subscription> subscriptions) async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonList = subscriptions
-        .map((s) => jsonEncode(s.toJson()))
-        .toList();
-    await prefs.setStringList(_prefsKey, jsonList);
-  }
-
-  /// Add a new subscription
-  Future<List<Subscription>> addSubscription(String url, {String? name}) async {
-    final subscriptions = await loadSubscriptions();
-    final newSub = Subscription.fromUrl(url, name);
-    subscriptions.add(newSub);
-    await saveSubscriptions(subscriptions);
+    final subscriptions = <Subscription>[];
+    await for (final file in dir.list()) {
+      if (file is File && file.path.endsWith('.yaml')) {
+        final content = await file.readAsString();
+        final name = _extractNameFromYaml(content) ?? file.path.split('/').last;
+        final url = _extractUrlFromYaml(content);
+        subscriptions.add(Subscription(
+          name: name,
+          url: url ?? '',
+          lastUpdated: file.lastModifiedSync(),
+          filePath: file.path,
+        ));
+      }
+    }
     return subscriptions;
   }
 
-  /// Remove a subscription by URL
-  Future<List<Subscription>> removeSubscription(String url) async {
-    final subscriptions = await loadSubscriptions();
-    subscriptions.removeWhere((s) => s.url == url);
-    await saveSubscriptions(subscriptions);
-    return subscriptions;
+  /// Add a new subscription: Download -> Save as YAML -> Update Active Config
+  Future<void> addSubscription(String url, {String? name}) async {
+    // 1. Fetch content using robust fetcher
+    final content = await RobustSubscriptionFetcher.fetch(url);
+    if (content.isEmpty) throw Exception('Empty subscription content');
+
+    // 2. Save as YAML file
+    final configsDirPath = await _configsDir;
+    final safeName = name ?? url.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_').substring(0, 20);
+    final fileName = '${safeName}_${DateTime.now().millisecondsSinceEpoch}.yaml';
+    final file = File(p.join(configsDirPath, fileName));
+    await file.writeAsString(content);
+
+    // 3. Copy to active config path (so mihomo can load it)
+    final activePath = await activeConfigPath;
+    await file.copy(activePath);
   }
 
-  /// Update (refresh) a subscription from remote
-  Future<String?> fetchSubscription(Subscription sub) async {
-    try {
-      final response = await _dio.get(
-        sub.url,
-        options: Options(
-          headers: {'User-Agent': 'Clash.Meta'},
-          responseType: ResponseType.plain,
-        ),
-      );
-
-      // Parse subscription info headers
-      final headers = response.headers;
-      final userInfo = headers.map['subscription-userinfo']?.first;
-      if (userInfo != null) {
-        _parseUserInfo(sub, userInfo);
-      }
-
-      return response.data as String;
-    } catch (e) {
-      throw Exception('Failed to fetch subscription: $e');
-    }
+  /// Switch to a specific subscription: Copy YAML to active config
+  Future<void> switchToSubscription(String filePath) async {
+    final activePath = await activeConfigPath;
+    final sourceFile = File(filePath);
+    if (!sourceFile.existsSync()) throw Exception('Config file not found');
+    await sourceFile.copy(activePath);
   }
 
-  /// Parse subscription-userinfo header
-  void _parseUserInfo(Subscription sub, String userInfo) {
-    final params = <String, String>{};
-    for (final part in userInfo.split(';')) {
-      final kv = part.split('=');
-      if (kv.length == 2) {
-        params[kv[0].trim()] = kv[1].trim();
-      }
-    }
-
-    // Update subscription with usage info
-    if (params.containsKey('upload')) {
-      // Create updated subscription
+  /// Delete a subscription file
+  Future<void> deleteSubscription(String filePath) async {
+    final file = File(filePath);
+    if (file.existsSync()) {
+      await file.delete();
     }
   }
 
-  /// Fetch and get config content from subscription
-  Future<Map<String, dynamic>> fetchAndParse(Subscription sub) async {
-    final content = await fetchSubscription(sub);
-    if (content == null || content.isEmpty) {
-      throw Exception('Empty subscription content');
+  /// Update (refresh) a subscription
+  Future<void> updateSubscription(String url, String filePath) async {
+    final content = await RobustSubscriptionFetcher.fetch(url);
+    if (content.isEmpty) throw Exception('Empty subscription content');
+    final file = File(filePath);
+    await file.writeAsString(content);
+    
+    // If this was the active config, copy again
+    final activePath = await activeConfigPath;
+    if (filePath == activePath || await file.lastModified().then((t) => t.isAfter(await File(activePath).lastModified()))) {
+      await file.copy(activePath);
     }
-
-    // The content should be in Clash/Mihomo YAML format
-    // It will be processed by ConfigManager
-    return {'content': content, 'url': sub.url};
   }
 
-  /// Auto-update all subscriptions
-  Future<Map<String, String>> updateAll(List<Subscription> subscriptions) async {
-    final results = <String, String>{};
+  // Helpers to extract info from YAML (simplified)
+  String? _extractNameFromYaml(String content) {
+    final match = RegExp(r'^name:\s*(.+)', multiLine: true).firstMatch(content);
+    return match?.group(1)?.trim();
+  }
 
-    for (final sub in subscriptions) {
-      try {
-        final content = await fetchSubscription(sub);
-        if (content != null) {
-          results[sub.url] = 'success';
-        } else {
-          results[sub.url] = 'empty';
-        }
-      } catch (e) {
-        results[sub.url] = 'error: $e';
-      }
-    }
-
-    return results;
+  String? _extractUrlFromYaml(String content) {
+    final match = RegExp(r'^# url:\s*(.+)', multiLine: true).firstMatch(content);
+    return match?.group(1)?.trim();
   }
 }
