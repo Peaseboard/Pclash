@@ -261,10 +261,18 @@ class SubscriptionNotifier extends StateNotifier<AsyncValue<List<Subscription>>>
     }
   }
 
-  Future<void> remove(String filePath) async {
+  Future<void> remove(String url) async {
     state = const AsyncValue.loading();
     try {
-      await _manager.deleteSubscription(filePath);
+      // Find the subscription by URL and delete by filePath
+      final currentSubs = state.when(
+        data: (s) => s,
+        loading: () => [],
+        error: (_, __) => [],
+      );
+      final sub = currentSubs.firstWhere((s) => s.url == url, orElse: () => currentSubs.first);
+      final deletePath = sub.filePath ?? url;
+      await _manager.deleteSubscription(deletePath);
       await _load();
     } catch (e, st) {
       state = AsyncValue.error(e, st);

@@ -134,20 +134,8 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
     try {
       await notifier.add(url, name: name);
       
-      // Immediately fetch content to validate
-      final subs = ref.read(subscriptionsProvider).when(
-        data: (s) => s,
-        loading: () => [],
-        error: (_, __) => [],
-      );
-      final targetSub = subs.firstWhere((s) => s.url == url);
-      
-      final subManager = subscription_manager.SubscriptionManager();
-      final content = await subManager.fetchSubscription(targetSub);
-      
-      if (content == null || content.isEmpty) {
-        throw Exception('订阅内容为空');
-      }
+      // notifier.add already fetches and saves the content via RobustSubscriptionFetcher
+      // No need for a second fetch
 
       setState(() {
         _showAddForm = false;
